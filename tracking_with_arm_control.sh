@@ -34,50 +34,11 @@ echo "启动完整的跟踪与机械臂控制系统"
 echo "=========================================="
 
 # ============================
-# 步骤 1: 启动视频流节点
+# 运行 run_node：统一启动全部流程
 # ============================
-echo "[1/3] 启动 robot_video_client 节点..."
-ros2 launch robot_video_client robot_video_client.launch.py &
-ROBOT_VIDEO_PID=$!
-echo "robot_video_client PID: $ROBOT_VIDEO_PID"
-
-# 等待 5 秒
-echo "[1/3] 等待 5 秒，让视频流节点初始化..."
-sleep 5
-
-# ============================
-# 步骤 2: 启动 Tracking 节点
-# ============================
-echo "[2/3] 启动 track_camera_front_min 节点..."
-ros2 launch track_on_ros2 track_camera_front_min.launch.py &
-TRACKING_PID=$!
-echo "track_camera_front_min PID: $TRACKING_PID"
-
-# 等待 5 秒
-echo "[2/3] 等待 5 秒，让 Tracking 节点初始化..."
-sleep 5
-
-# ============================
-# 步骤 3: 启动 3D-TF 转换与机械臂控制节点
-# ============================
-echo "[3/3] 启动 points3d_tf_to_arm_base_node 节点..."
+echo "[1/1] 运行 run_node（会自动启动视频、Tracking、以及 points3d_tf_to_arm_base_node）..."
 echo "=========================================="
-echo "所有节点已启动，points3d_tf_to_arm_base_node 在前台运行"
 echo "按 Ctrl+C 退出所有节点"
 echo "=========================================="
 
-# 前台运行 points3d_tf_to_arm_base_node
-ros2 run Monte_api_ros2 points3d_tf_to_arm_base_node
-
-# ============================
-# 清理：当 points3d_tf_to_arm_base_node 退出时，清理其他节点
-# ============================
-echo ""
-echo "points3d_tf_to_arm_base_node 节点已退出，正在清理其他节点..."
-kill $TRACKING_PID 2>/dev/null || true
-kill $ROBOT_VIDEO_PID 2>/dev/null || true
-wait $TRACKING_PID 2>/dev/null || true
-wait $ROBOT_VIDEO_PID 2>/dev/null || true
-
-echo "所有节点已退出"
-
+ros2 run monte_controller_node run_node

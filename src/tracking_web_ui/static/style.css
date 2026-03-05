@@ -1,0 +1,293 @@
+:root {
+  /* Swiss Palette */
+  --bg-body: #FAFAFA;       /* 极浅灰背景 */
+  --bg-surface: #FFFFFF;    /* 纯白卡片 */
+  --bg-element: #F4F4F5;    /* 控件背景 */
+  
+  --border-light: #E4E4E7;  /* 细微边框 */
+  --border-hover: #A1A1AA;
+  
+  --text-primary: #18181B;  /* 近乎纯黑 */
+  --text-secondary: #71717A;
+  --text-tertiary: #A1A1AA;
+  
+  --accent-blue: #2563EB;   /* 工业蓝 */
+  --accent-blue-dim: #EFF6FF;
+
+  --status-green: #10B981;
+  --status-amber: #F59E0B;
+  --status-red: #EF4444;
+
+  --font-ui: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 8px; /* 较小的圆角，更显精密 */
+}
+
+* { box-sizing: border-box; outline: none; }
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-body);
+  font-family: var(--font-ui);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Layout --- */
+.app-layout {
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 24px 24px 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Header --- */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 24px;
+  flex-shrink: 0;
+}
+
+.brand {
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-logo-img {
+  height: 32px;
+  width: auto;
+}
+.brand-sub { color: var(--text-tertiary); font-weight: 400; }
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--border-light);
+}
+.status-dot.ok { background: var(--status-green); box-shadow: 0 0 0 2px rgba(16,185,129,0.15); }
+.status-dot.err { background: var(--status-red); }
+
+/* --- Grid --- */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px; /* 固定右侧宽度 */
+  gap: 24px;
+  flex: 1;
+  min-height: 0; /* 防止溢出 */
+}
+
+/* --- Left Column --- */
+.col-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 0;
+}
+
+.viewport-card {
+  position: relative;
+  background: #09090B; /* 深黑底色 */
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* 悬浮感 */
+  flex: 1;
+  min-height: 400px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+#video-stream, #click-layer {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+}
+#click-layer { position: absolute; top: 0; left: 0; cursor: crosshair; }
+
+.viewport-overlay { pointer-events: none; position: absolute; inset: 0; }
+.live-tag {
+  position: absolute; top: 16px; left: 16px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(4px);
+  color: rgba(255,255,255,0.8);
+  font-size: 11px; font-weight: 600; letter-spacing: 1px;
+  padding: 4px 8px; border-radius: 4px;
+  display: flex; align-items: center; gap: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.rec-dot { width: 6px; height: 6px; background: var(--status-red); border-radius: 50%; animation: blink 2s infinite; }
+
+/* Data Row */
+.data-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  height: 280px;
+  flex-shrink: 0;
+}
+
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+}
+.panel-label {
+  font-size: 11px; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase;
+}
+
+.log-terminal {
+  flex: 1; overflow-y: auto; font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);
+  border-top: 1px solid var(--border-light); padding-top: 8px;
+}
+.log-line { padding: 3px 0; display: flex; gap: 12px; border-bottom: 1px dashed rgba(0,0,0,0.03); }
+.log-line .ts { color: var(--text-tertiary); min-width: 60px; }
+.log-line .msg { color: var(--text-primary); }
+
+.plot-container { width: 100%; height: 100%; }
+
+/* --- Right Column (Sidebar) --- */
+.col-sidebar {
+  display: flex; flex-direction: column; gap: 24px; min-height: 0; overflow-y: auto;
+}
+
+.status-panel { gap: 16px; }
+.metric-group label { font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+.value-display { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+.value-display-lg { font-size: 24px; font-weight: 600; color: var(--text-primary); line-height: 1; }
+.unit { font-size: 12px; color: var(--text-tertiary); }
+.metric-divider { height: 1px; background: var(--border-light); width: 100%; }
+.progress-track { background: var(--bg-element); height: 4px; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.progress-fill { background: var(--accent-blue); height: 100%; width: 0; transition: width 0.3s; }
+
+.control-panel { gap: 24px; flex: 1; }
+.control-section { display: flex; flex-direction: column; gap: 12px; }
+.section-title { font-size: 10px; font-weight: 700; color: var(--text-tertiary); letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* Buttons & Inputs */
+.btn {
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex; justify-content: center; align-items: center; gap: 8px;
+  transition: all 0.15s ease;
+}
+.btn i { font-size: 12px; }
+
+.btn-primary { background: var(--text-primary); color: white; }
+.btn-primary:hover { background: black; transform: translateY(-1px); }
+
+.btn-default { background: var(--bg-element); color: var(--text-primary); border-color: transparent; }
+.btn-default:hover { background: #E4E4E7; }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-light); }
+.btn-ghost:hover { border-color: var(--text-primary); color: var(--text-primary); }
+
+.btn-danger { background: #FEF2F2; color: var(--status-red); }
+.btn-danger:hover { background: #FEE2E2; }
+
+.btn-icon-sm { background: none; border: none; cursor: pointer; color: var(--text-tertiary); padding: 4px; }
+.btn-icon-sm:hover { color: var(--text-primary); }
+
+.btn-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Toggle Switch */
+.toggle-switch-container {
+  display: flex; background: var(--bg-element); padding: 3px; border-radius: var(--radius-sm);
+}
+.toggle-btn {
+  flex: 1; background: transparent; border: none; padding: 8px; font-size: 12px; font-weight: 500;
+  color: var(--text-secondary); border-radius: 4px; cursor: pointer; transition: all 0.2s;
+}
+.toggle-btn.active { background: white; color: var(--text-primary); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+/* 操作介绍 (可展开/收起) - 与 panel / control-section 风格一致 */
+.help-panel {
+  margin-top: auto;
+  padding: 0;
+  overflow: hidden;
+}
+.help-panel-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 20px 20px 16px 20px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: background 0.15s;
+}
+.help-panel-trigger::-webkit-details-marker { display: none; }
+.help-panel-trigger:hover {
+  background: var(--bg-element);
+}
+.help-panel-trigger .section-title {
+  margin-bottom: 0;
+}
+.help-chevron {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  transition: transform 0.2s;
+}
+.help-panel[open] .help-chevron {
+  transform: rotate(180deg);
+}
+.help-steps {
+  padding: 12px 20px 20px 36px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-light);
+}
+.help-steps li {
+  margin-bottom: 8px;
+}
+.help-steps li:last-child {
+  margin-bottom: 0;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: #D4D4D8; border-radius: 3px; }
+
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+/* Mobile Response */
+@media (max-width: 1024px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .col-sidebar { max-height: none; overflow: visible; }
+}

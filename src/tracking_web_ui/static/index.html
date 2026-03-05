@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Console</title>
+  <!-- 引入专业级字体 Inter (UI) 和 JetBrains Mono (代码/数据) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- FontAwesome 图标 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    
+    <!-- 顶部导航：极简，仅展示品牌和核心状态 -->
+    <header class="top-bar">
+      <div class="brand">
+        <img src="/static/logo/logo-OfvRr10r.png" alt="Logo" class="brand-logo-img">
+        <span class="brand-text">CORENETIC TRACKING<span class="brand-sub">SYS</span></span>
+      </div>
+      
+      <div class="status-pill">
+        <span id="ros-status-dot" class="status-dot"></span>
+        <span id="connection-text" class="status-text">Connecting...</span>
+      </div>
+    </header>
+
+    <!-- 主内容区：左右分栏布局 -->
+    <main class="main-grid">
+      
+      <!-- 左侧：视觉与数据 (Visuals) -->
+      <section class="col-main">
+        <!-- 视频流视口 -->
+        <div class="viewport-card" id="video-wrapper">
+          <img src="/stream" id="video-stream" alt="No Signal" onerror="this.style.display='none'">
+          <canvas id="click-layer"></canvas>
+          
+          <!-- 悬浮覆盖层：类似取景器 -->
+          <div class="viewport-overlay">
+            <div class="live-tag">
+              <div class="rec-dot"></div> LIVE
+            </div>
+            <div class="viewport-reticle"></div>
+          </div>
+        </div>
+
+        <!-- 数据面板 (日志 + 3D) -->
+        <div class="data-row">
+          <div class="panel log-panel">
+            <div class="panel-header">
+              <span class="panel-label">SYSTEM LOGS</span>
+              <button class="btn-icon-sm" id="btn-clear-log" title="Clear Logs"><i class="fa-solid fa-eraser"></i></button>
+            </div>
+            <div class="log-terminal" id="sys-log">
+              <div class="log-line"><span class="ts">SYS</span> <span class="msg">Console initialized.</span></div>
+            </div>
+          </div>
+
+          <div class="panel spatial-panel">
+            <div class="panel-header">
+              <span class="panel-label">SPATIAL METRICS</span>
+            </div>
+            <div id="spatial-plot" class="plot-container"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 右侧：控制台 (Controls) -->
+      <aside class="col-sidebar">
+        
+        <!-- 状态卡片 -->
+        <div class="panel status-panel">
+          <div class="metric-group">
+            <label>Coarse Lock</label>
+            <div class="value-display" id="status-coarse">PENDING</div>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-group">
+            <label>Keypoints</label>
+            <div class="d-flex justify-content-between align-items-end">
+              <span class="value-display-lg" id="kp-count">0</span>
+              <span class="unit">/ 20</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="kp-progress"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 操作面板 -->
+        <div class="panel control-panel">
+          
+          <!-- 关键点流程 -->
+          <div class="control-section">
+            <span class="section-title">CALIBRATION</span>
+            <button class="btn btn-primary" id="btn-set-kp">
+              <i class="fa-solid fa-crosshairs"></i> Confirm Keypoints
+            </button>
+          </div>
+
+          <!-- 运行控制 -->
+          <div class="control-section">
+            <span class="section-title">EXECUTION</span>
+            <div class="btn-grid-2">
+              <button class="btn btn-default" id="btn-start">
+                <i class="fa-solid fa-play"></i> Start
+              </button>
+              <button class="btn btn-default" id="btn-stop">
+                <i class="fa-solid fa-pause"></i> Pause
+              </button>
+            </div>
+          </div>
+
+          <!-- 机械臂模式 -->
+          <div class="control-section">
+            <span class="section-title">ACTUATOR MODE</span>
+            <button class="btn btn-default" id="btn-toggle-arm-mode">
+              <i class="fa-solid fa-shuffle"></i> Zero Force ⇄ Position
+            </button>
+          </div>
+
+          <!-- 系统维护 -->
+          <div class="control-section mt-auto">
+            <span class="section-title">MAINTENANCE</span>
+            <button class="btn btn-ghost" id="btn-return-home">Return Home</button>
+            <button class="btn btn-danger" id="btn-reset">System Reset</button>
+          </div>
+
+        </div>
+
+        <!-- 操作介绍 (可展开/收起) -->
+        <details class="panel help-panel" id="help-panel">
+          <summary class="help-panel-trigger">
+            <span class="section-title">操作介绍</span>
+            <i class="fa-solid fa-chevron-down help-chevron"></i>
+          </summary>
+          <ol class="help-steps">
+            <li>在左侧实时图像上点击目标点，页面会记录并发送粗定位请求。</li>
+            <li>观察「粗定位状态」从 Pending 变为 Locked 表示完成。</li>
+            <li>如需中断，可切换到「位置模式」锁定机械臂；示教时使用「零力模式」。</li>
+            <li>重新选择目标点前，先点击「重置系统」。</li>
+          </ol>
+        </details>
+      </aside>
+
+    </main>
+  </div>
+
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

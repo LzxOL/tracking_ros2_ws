@@ -16,6 +16,33 @@ ROS2节点实现实时摄像头关键点跟踪功能。
 确保已安装必要的依赖：
 - `python3-empy` 或 `empy` Python 包（版本 3.3.4）
 - ROS2 Humble 及其依赖
+- **OpenCV GUI 支持（必须有窗口）**：需要系统 GTK 依赖，否则 `cv2.namedWindow` 会报错
+  ```bash
+  sudo apt-get update
+  sudo apt-get install -y libgtk2.0-dev pkg-config
+  ```
+
+### Python 依赖兼容性（重要）
+
+ROS Humble 的 `cv_bridge` 通常依赖 **NumPy 1.x**，而 `opencv-python>=4.12` 会强制 **NumPy>=2**，会导致：
+`AttributeError: _ARRAY_API not found`。  
+因此建议固定版本：
+
+```bash
+python3 -m pip uninstall -y opencv-python opencv-python-headless numpy
+python3 -m pip install --user "numpy==1.26.4" "opencv-python==4.11.0.86"
+```
+
+验证：
+```bash
+python3 - <<'PY'
+import numpy, cv2
+print("numpy", numpy.__version__)
+print("cv2", cv2.__version__)
+cv2.namedWindow("test")
+cv2.destroyAllWindows()
+PY
+```
 
 ### 构建步骤
 
@@ -149,4 +176,3 @@ ros2 run rqt_image_view rqt_image_view /tracking/visualization
 ```bash
 ros2 topic echo /tracking/keypoints
 ```
-

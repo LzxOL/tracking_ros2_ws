@@ -13,6 +13,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetKeypoints.srv"
   "srv/ControlTracking.srv"
   "srv/ResetTracking.srv"
+  "srv/SetCoarsePoint.srv"
 )
 
 ament_export_dependencies(rosidl_default_runtime)
