@@ -60,11 +60,20 @@
             </div>
           </div>
 
-          <div class="panel spatial-panel">
+          <div class="panel pose-panel">
             <div class="panel-header">
-              <span class="panel-label">SPATIAL METRICS</span>
+              <span class="panel-label">POSE DATA</span>
             </div>
-            <div id="spatial-plot" class="plot-container"></div>
+            <div class="pose-display" id="pose-display">
+              <div class="pose-row">
+                <span class="pose-label">Position</span>
+                <span class="pose-value" id="pose-xyz">--</span>
+              </div>
+              <div class="pose-row">
+                <span class="pose-label">Rotation</span>
+                <span class="pose-value" id="pose-quat">--</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -150,7 +159,6 @@
     </main>
   </div>
 
-  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>

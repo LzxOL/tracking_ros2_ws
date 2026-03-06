@@ -262,7 +262,7 @@ class TrackCameraHandNode(Node):
         # 3D 相关
         # 根据相机选择设置内参文件和深度话题
         ws_root = self._get_workspace_root()
-        default_intrinsics = camera_config.get('intrinsics_file', 'config/camera_rhead_front_intrinsics_02_10.txt')
+        default_intrinsics = camera_config.get('intrinsics_file', 'config/camera_rhand_front_intrinsics_02_10.txt')
         if ws_root and not os.path.isabs(default_intrinsics):
             default_intrinsics = os.path.join(ws_root, default_intrinsics)
 

@@ -11,13 +11,13 @@ robot:
 left_camera:
   camera_topic: "/left/color/video"
   depth_topic: "/left/depth/stream"
-  intrinsics_file: "config/camera_lhead_front_intrinsics_02_12.txt"
+  intrinsics_file: "config/camera_lhand_front_intrinsics_02_9.txt"
 
 # 右相机配置
 right_camera:
   camera_topic: "/right/color/video"
   depth_topic: "/right/depth/stream"
-  intrinsics_file: "config/camera_rhead_front_intrinsics_02_10.txt"
+  intrinsics_file: "config/camera_rhand_front_intrinsics_02_9.txt"
 
 # 跟踪参数
 tracking:

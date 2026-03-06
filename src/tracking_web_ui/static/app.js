@@ -4,25 +4,28 @@
 
 const API_BASE = '/api';
 let keypointClicks = [];
-let spatialPlotReady = false;
 
-// 1. Plotly Layout: Stripped down to bare essentials
-const spatialLayout = {
-  margin: { l: 0, r: 0, b: 0, t: 0 },
-  paper_bgcolor: 'rgba(0,0,0,0)',
-  plot_bgcolor: 'rgba(0,0,0,0)',
-  showlegend: false,
-  font: { family: "'Inter', sans-serif", size: 10, color: '#71717A' }, // Matches text-secondary
-  scene: {
-    xaxis: { title: '', showgrid: true, gridcolor: '#E4E4E7', zeroline: false, showticklabels: false, backgroundcolor: 'rgba(0,0,0,0)' },
-    yaxis: { title: '', showgrid: true, gridcolor: '#E4E4E7', zeroline: false, showticklabels: false, backgroundcolor: 'rgba(0,0,0,0)' },
-    zaxis: { title: '', showgrid: true, gridcolor: '#E4E4E7', zeroline: false, showticklabels: false, backgroundcolor: 'rgba(0,0,0,0)' },
-    aspectmode: 'data',
-    bgcolor: 'rgba(0,0,0,0)',
-    camera: { eye: { x: 1.5, y: 1.5, z: 1.2 } }
-  },
-  uirevision: 'static',
-};
+// Pose formatting functions
+function formatPose(pose) {
+  if (!pose) return { xyz: '--', quat: '--' };
+  const xyz = pose.slice(0, 3).map(v => v.toFixed(3)).join(', ');
+  const quat = pose.slice(3, 7).map(v => v.toFixed(3)).join(', ');
+  return { xyz, quat };
+}
+
+async function updatePoseDisplay() {
+  try {
+    const res = await fetch(`${API_BASE}/pose`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const pose = data.pose;
+    const { xyz, quat } = formatPose(pose);
+    const xyzEl = document.getElementById('pose-xyz');
+    const quatEl = document.getElementById('pose-quat');
+    if (xyzEl) xyzEl.textContent = xyz;
+    if (quatEl) quatEl.textContent = quat;
+  } catch (e) { /* ignore */ }
+}
 
 const videoStream = document.getElementById('video-stream');
 const videoWrapper = document.getElementById('video-wrapper');
@@ -133,51 +136,6 @@ function log(msg, type = 'info') {
   entry.innerHTML = `<span class="ts">${time}</span><span class="msg" style="${colorStyle}">${msg}</span>`;
   box.appendChild(entry);
   box.scrollTop = box.scrollHeight;
-}
-
-function initSpatialPlot() {
-  const el = document.getElementById('spatial-plot');
-  if (!el || !window.Plotly) return;
-  Plotly.newPlot(el, [], spatialLayout, { displayModeBar: false, responsive: true });
-  spatialPlotReady = true;
-}
-
-async function updateSpatialPlot() {
-  if (!spatialPlotReady) {
-    initSpatialPlot();
-    if (!spatialPlotReady) return;
-  }
-  try {
-    const res = await fetch(`${API_BASE}/spatial`);
-    if (!res.ok) return;
-    const data = await res.json();
-    const pts = data.points3d || [];
-    const kps = data.keypoints || [];
-    const traj = data.traj || [];
-
-    const selectedIds = new Set(kps.filter((k) => k.visible !== false).map((k) => k.id));
-    const allX = [], allY = [], allZ = [];
-    const selX = [], selY = [], selZ = [], selText = [];
-
-    pts.forEach((p) => {
-      allX.push(p.x); allY.push(p.y); allZ.push(p.z);
-      if (selectedIds.has(p.id)) {
-        selX.push(p.x); selY.push(p.y); selZ.push(p.z);
-        selText.push(`#${p.id}`);
-      }
-    });
-
-    const traces = [
-      // Ghost points (background context)
-      { type: 'scatter3d', mode: 'markers', x: allX, y: allY, z: allZ, marker: { size: 1.5, color: '#E4E4E7', opacity: 0.5 }, hoverinfo: 'none' },
-      // Active Keypoints (Blue)
-      { type: 'scatter3d', mode: 'markers', x: selX, y: selY, z: selZ, text: selText, marker: { size: 4, color: '#2563EB' } },
-      // Trajectory (Grey line)
-      { type: 'scatter3d', mode: 'lines', x: traj.map(p => p.x), y: traj.map(p => p.y), z: traj.map(p => p.z), line: { color: '#71717A', width: 3 } },
-    ];
-
-    Plotly.react('spatial-plot', traces, spatialLayout, { displayModeBar: false, responsive: true });
-  } catch (e) { /* ignore */ }
 }
 
 function clearLog() {
@@ -327,4 +285,4 @@ setInterval(async () => {
 }, 1000);
 
 log('System ready.');
-setInterval(updateSpatialPlot, 500);
+setInterval(updatePoseDisplay, 500);

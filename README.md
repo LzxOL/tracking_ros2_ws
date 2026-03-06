@@ -248,6 +248,22 @@ source install/setup.bash
 
 ### 3.2.2 运行
 
+> **注意：在运行程序前，需要修改对应的内外参文件。**
+
+在使用不同机器人（如 mt029、mt0210 等）时，需要确保配置文件中使用对应的内外参文件：
+
+1. **外参文件**：手腕到相机的变换矩阵
+   - 脚本会自动生成并更新：`generate_joint_sensor_rgbd_txts.sh -r <robot_name>`
+   - 例如：`./generate_joint_sensor_rgbd_txts.sh -r mt029`
+   - 生成的配置文件会自动更新到：
+     - `src/monte_controller_node/config/config.yaml`
+     - `src/track_on_ros2/config/config.yaml`
+
+2. **内参文件**：相机内参（焦距、主点等）
+   - 需要根据不同机器人从机器人端获取对应编号的内参文件
+   - 文件命名规则：`camera_lhand_front_intrinsics_02_<suffix>.txt`（左侧）和 `camera_rhand_front_intrinsics_02_<suffix>.txt`（右侧）
+   - 需手动更新 `src/track_on_ros2/config/config.yaml` 中的 `intrinsics_file` 路径
+
 ```bash
 ./tracking_with_arm_control.sh
 ```
@@ -273,7 +289,7 @@ cd src/tracking_web_ui
 
 浏览器访问：<http://localhost:8080>
 
-#### 使用方法
+#### 使用方法了网页端上位机
 
 1. 在图像上点击目标位置
 2. 点击「执行粗定位」或「设置关键点」

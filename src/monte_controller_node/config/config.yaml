@@ -9,9 +9,9 @@ robot:
 # 外参文件路径（相对于工作空间根目录）
 extrinsics:
   left:
-    wrist_extrinsic_file: "config/joint_lt_sensor_rgbd_12.txt"
+    wrist_extrinsic_file: "config/joint_lt_sensor_rgbd_9.txt"
   right:
-    wrist_extrinsic_file: "config/joint_rt_sensor_rgbd_12.txt"
+    wrist_extrinsic_file: "config/joint_rt_sensor_rgbd_9.txt"
 
 # 坐标系配置
 frames:

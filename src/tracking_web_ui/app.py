@@ -38,6 +38,7 @@ latest_keypoints = None
 coarse_done_status = False
 latest_points3d = None
 gripper_traj = []
+latest_robot_pose = None
 MAX_TRAJ_POINTS = 1500
 
 def _make_placeholder_jpeg():
@@ -99,9 +100,10 @@ class WebBridgeNode:
         self._n.declare_parameter("coarse_done_topic", "tracking/coarse_done")
         self._n.declare_parameter("points3d_topic", "tracking/points3d_in_arm_base")
         self._n.declare_parameter("traj_topic", "tracking/gripper_traj")
+        self._n.declare_parameter("robot_pose_topic", "robot_pose")
 
         from sensor_msgs.msg import Image, PointCloud
-        from geometry_msgs.msg import PointStamped
+        from geometry_msgs.msg import PointStamped, Pose
         from std_msgs.msg import Bool
         from rclpy.qos import qos_profile_sensor_data
 
@@ -110,6 +112,7 @@ class WebBridgeNode:
         coarse_topic = self._n.get_parameter("coarse_done_topic").value
         points3d_topic = self._n.get_parameter("points3d_topic").value
         traj_topic = self._n.get_parameter("traj_topic").value
+        robot_pose_topic = self._n.get_parameter("robot_pose_topic").value
 
         # 使用 sensor_data QoS，兼容 best-effort 图像发布者
         self._n.create_subscription(Image, viz_topic, self.viz_cb, qos_profile_sensor_data)
@@ -121,9 +124,10 @@ class WebBridgeNode:
         self._n.create_subscription(Bool, coarse_topic, self.coarse_done_cb, 5)
         self._n.create_subscription(PointCloud, points3d_topic, self.points3d_cb, qos_profile_sensor_data)
         self._n.create_subscription(PointStamped, traj_topic, self.traj_cb, qos_profile_sensor_data)
+        self._n.create_subscription(Pose, robot_pose_topic, self.robot_pose_cb, qos_profile_sensor_data)
 
         self._setup_clients()
-        self._n.get_logger().info(f"订阅: {viz_topic}, {kp_topic}, {coarse_topic}, {points3d_topic}, {traj_topic}")
+        self._n.get_logger().info(f"订阅: {viz_topic}, {kp_topic}, {coarse_topic}, {points3d_topic}, {traj_topic}, {robot_pose_topic}")
 
     def _setup_clients(self):
         self.set_kp_client = self.control_client = self.reset_client = self.coarse_client = None
@@ -209,6 +213,16 @@ class WebBridgeNode:
             gripper_traj.append({"x": float(msg.point.x), "y": float(msg.point.y), "z": float(msg.point.z)})
             if len(gripper_traj) > MAX_TRAJ_POINTS:
                 gripper_traj = gripper_traj[-MAX_TRAJ_POINTS:]
+        except Exception:
+            pass
+
+    def robot_pose_cb(self, msg):
+        global latest_robot_pose
+        try:
+            latest_robot_pose = [
+                msg.position.x, msg.position.y, msg.position.z,
+                msg.orientation.w, msg.orientation.x, msg.orientation.y, msg.orientation.z
+            ]
         except Exception:
             pass
 
@@ -316,6 +330,13 @@ async def get_status():
     global latest_keypoints, coarse_done_status
     kp = latest_keypoints if latest_keypoints is not None else ([{"x": 100, "y": 100}] if PREVIEW_MODE else [])
     return {"keypoints": kp, "coarse_done": coarse_done_status}
+
+
+@app.get("/api/pose")
+async def get_pose():
+    if PREVIEW_MODE:
+        return {"pose": None}
+    return {"pose": latest_robot_pose}
 
 
 @app.get("/api/spatial")
