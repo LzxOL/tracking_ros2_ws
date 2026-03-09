@@ -309,6 +309,26 @@ source install/setup.bash
 ./tracking_with_arm_control.sh
 ```
 
+#### 启动参数
+
+| 参数 | 说明 |
+|------|------|
+| `--web-ui`, `-w` | 同时启动 Web UI（可选） |
+
+**使用示例：**
+
+```bash
+# 仅启动跟踪系统（OpenCV 窗口）
+./tracking_with_arm_control.sh
+
+# 启动跟踪系统 + Web UI
+./tracking_with_arm_control.sh --web-ui
+# 或
+./tracking_with_arm_control.sh -w
+```
+
+> 使用 `--web-ui` 参数时，Web UI 会在后台启动，访问 http://localhost:8080
+
 ### 3.2.3 可视化界面（Web UI）
 
 除默认的 OpenCV 可视化窗口外，还提供 **Web 可视化界面**：
@@ -319,6 +339,19 @@ source install/setup.bash
 
 #### 启动 Web UI
 
+**方式一：使用参数自动启动（推荐）**
+
+```bash
+# 启动跟踪系统时同时启动 Web UI
+./tracking_with_arm_control.sh --web-ui
+# 或
+./tracking_with_arm_control.sh -w
+```
+
+浏览器访问：http://localhost:8080
+
+**方式二：手动启动**
+
 ```bash
 # 1. 先启动跟踪系统
 ./tracking_with_arm_control.sh
@@ -327,8 +360,6 @@ source install/setup.bash
 cd src/tracking_web_ui
 ./run.sh
 ```
-
-浏览器访问：<http://localhost:8080>
 
 #### 使用方法了网页端上位机
 
@@ -351,7 +382,7 @@ cd src/tracking_web_ui
 | 脚本名                                 | 功能                                              |
 | ----------------------------------- | ----------------------------------------------- |
 | `generate_camera_params.sh`         | 生成相机内外参（外参 TF 变换 + 内参从机器人获取）                |
-| `tracking_with_arm_control.sh`      | 启动完整的跟踪与机械臂控制系统（视频流 + Tracking + 3D-TF转换 + 机械臂控制） |
+| `tracking_with_arm_control.sh`      | 启动完整的跟踪与机械臂控制系统（视频流 + Tracking + 3D-TF转换 + 机械臂控制）<br>支持 `--web-ui`/`-w` 参数启动 Web UI |
 | `start_robot_video_stream.sh`       | 单独启动机器人视频流（robot_video_client）                    |
 
 ---

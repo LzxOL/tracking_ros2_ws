@@ -237,10 +237,10 @@ async function toggleArmMode() {
 }
 
 async function returnHome() {
-  if (!confirm('Return arm to home position?')) return;
+  if (!confirm('Return arm to initial position?')) return;
   try {
     const res = await postJson('/return_home', {});
-    log('Returning Home: ' + res.message, 'success');
+    log('Returning to Initial Position: ' + res.message, 'success');
   } catch (e) { log(e.message, 'error'); }
 }
 
