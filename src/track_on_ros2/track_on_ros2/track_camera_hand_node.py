@@ -366,10 +366,13 @@ class TrackCameraHandNode(Node):
         #######################git tag v1.1.0
         # 可视化发布
         #######################
+        self.get_logger().info(f"publish_visualization parameter value: {publish_visualization}")
         if publish_visualization:
             self.vis_image_pub = self.create_publisher(Image, "tracking/visualization", 10)
+            self.get_logger().info("可视化发布者已创建: /tracking/visualization")
         else:
             self.vis_image_pub = None
+            self.get_logger().warn("可视化发布已禁用")
 
         #######################
         # 状态
@@ -536,6 +539,8 @@ class TrackCameraHandNode(Node):
             img_msg = self.bridge.cv2_to_imgmsg(display, encoding='bgr8')
             img_msg.header = header
             self.vis_image_pub.publish(img_msg)
+        else:
+            self.get_logger().warn_once("vis_image_pub is None, 可视化图像未发布")
 
     ############################################
     # 开始 / 重置 跟踪

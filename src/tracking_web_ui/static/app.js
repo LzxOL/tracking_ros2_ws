@@ -4,6 +4,8 @@
 
 const API_BASE = '/api';
 let keypointClicks = [];
+let coarsePoint = null;  // 粗定位点（完成后会消失）
+let coarseDone = false;  // 粗定位是否已完成
 
 // Pose formatting functions
 function formatPose(pose) {
@@ -18,13 +20,14 @@ async function updatePoseDisplay() {
     const res = await fetch(`${API_BASE}/pose`);
     if (!res.ok) return;
     const data = await res.json();
+    console.log('Pose data received:', data);  // 调试日志
     const pose = data.pose;
     const { xyz, quat } = formatPose(pose);
     const xyzEl = document.getElementById('pose-xyz');
     const quatEl = document.getElementById('pose-quat');
     if (xyzEl) xyzEl.textContent = xyz;
     if (quatEl) quatEl.textContent = quat;
-  } catch (e) { /* ignore */ }
+  } catch (e) { console.error('Pose update error:', e); }
 }
 
 const videoStream = document.getElementById('video-stream');
@@ -80,7 +83,35 @@ function syncCanvas() {
   const scaleX = scale;
   const scaleY = scale;
 
-  // New Aesthetic: Technical HUD Style (White/Cyan)
+  // 1. 绘制粗定位点（菱形样式，完成后消失）
+  if (coarsePoint) {
+    const sx = offsetX + coarsePoint.x * scaleX;
+    const sy = offsetY + coarsePoint.y * scaleY;
+    
+    // 菱形外框
+    ctx.beginPath();
+    ctx.moveTo(sx, sy - 12);
+    ctx.lineTo(sx + 12, sy);
+    ctx.lineTo(sx, sy + 12);
+    ctx.lineTo(sx - 12, sy);
+    ctx.closePath();
+    ctx.strokeStyle = '#F59E0B';  // Orange for coarse
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // 中心点
+    ctx.beginPath();
+    ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#F59E0B';
+    ctx.fill();
+    
+    // 标签
+    ctx.font = '600 11px "Inter"';
+    ctx.fillStyle = '#F59E0B';
+    ctx.fillText('COARSE', sx + 15, sy + 4);
+  }
+
+  // 2. 绘制关键点（圆形样式）
   keypointClicks.forEach((p, i) => {
     const sx = offsetX + p.x * scaleX;
     const sy = offsetY + p.y * scaleY;
@@ -181,12 +212,15 @@ async function sendReset() {
   if (!confirm('Reset system state?')) return;
   try {
     const res = await postJson('/reset', {});
-    log('System Reset: ' + res.message, res.success ? 'success' : 'warn');
+    log('系统重置: ' + res.message, res.success ? 'success' : 'warn');
     if (res.success) {
       keypointClicks = [];
+      coarsePoint = null;
+      coarseDone = false;
       syncCanvas();
       document.getElementById('status-coarse').innerText = 'PENDING';
       document.getElementById('status-coarse').style.color = 'var(--text-primary)';
+      log('状态: 等待设置粗定位点', 'info');
     }
   } catch (e) {
     log(e.message, 'error');
@@ -216,15 +250,23 @@ videoWrapper.addEventListener('click', async (e) => {
   const { x, y, inBounds } = getImageCoords(e.clientX, e.clientY);
   if (!inBounds) return;
 
-  keypointClicks.push({ x, y });
+  if (!coarseDone) {
+    // 粗定位阶段：设置粗定位点
+    coarsePoint = { x, y };
+    log(`粗定位点设置: (${Math.round(x)}, ${Math.round(y)})`, 'info');
+    log(`状态: 粗定位中...`, 'info');
+    syncCanvas();
 
-  log(`Target set: (${Math.round(x)}, ${Math.round(y)})`);
-  syncCanvas();
-
-  try {
-    await postJson('/set_coarse_point', { x, y });
-  } catch (e) {
-    log('Coarse point send failed', 'error');
+    try {
+      await postJson('/set_coarse_point', { x, y });
+    } catch (e) {
+      log('粗定位点发送失败', 'error');
+    }
+  } else {
+    // 关键点跟踪阶段：添加关键点
+    keypointClicks.push({ x, y });
+    log(`关键点设置: (${Math.round(x)}, ${Math.round(y)})，共 ${keypointClicks.length} 个关键点`, 'info');
+    syncCanvas();
   }
 });
 
@@ -263,9 +305,17 @@ setInterval(async () => {
         if (data.coarse_done) {
           coarseText.innerText = 'LOCKED';
           coarseText.style.color = 'var(--status-green)';
+          // 粗定位完成后隐藏粗定位点
+          if (coarsePoint) {
+            coarsePoint = null;
+            coarseDone = true;  // 标记粗定位已完成
+            syncCanvas();
+            log('粗定位完成，等待设置关键点...', 'info');
+          }
         } else {
           coarseText.innerText = 'PENDING';
           coarseText.style.color = 'var(--text-primary)';
+          coarseDone = false;  // 重置状态
         }
       }
 

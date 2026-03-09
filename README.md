@@ -246,23 +246,64 @@ colcon build
 source install/setup.bash
 ```
 
-### 3.2.2 运行
+### 3.2.2 生成相机内外参
 
 > **注意：在运行程序前，需要修改对应的内外参文件。**
 
-在使用不同机器人（如 mt029、mt0210 等）时，需要确保配置文件中使用对应的内外参文件：
+本节介绍如何生成和更新相机内外参配置文件。
 
-1. **外参文件**：手腕到相机的变换矩阵
-   - 脚本会自动生成并更新：`generate_joint_sensor_rgbd_txts.sh -r <robot_name>`
-   - 例如：`./generate_joint_sensor_rgbd_txts.sh -r mt029`
-   - 生成的配置文件会自动更新到：
-     - `src/monte_controller_node/config/config.yaml`
-     - `src/track_on_ros2/config/config.yaml`
+#### 3.2.2.1 脚本功能
 
-2. **内参文件**：相机内参（焦距、主点等）
-   - 需要根据不同机器人从机器人端获取对应编号的内参文件
-   - 文件命名规则：`camera_lhand_front_intrinsics_02_<suffix>.txt`（左侧）和 `camera_rhand_front_intrinsics_02_<suffix>.txt`（右侧）
-   - 需手动更新 `src/track_on_ros2/config/config.yaml` 中的 `intrinsics_file` 路径
+`generate_camera_params.sh` 脚本用于自动生成以下配置文件：
+
+1. **外参文件**：手腕到相机的变换矩阵（TF 变换）
+   - `joint_lt_sensor_rgbd_<suffix>.txt`（左手腕到左侧相机）
+   - `joint_rt_sensor_rgbd_<suffix>.txt`（右手腕到右侧相机）
+
+2. **内参文件**：相机内参（焦距、主点、畸变系数等）
+   - `camera_lhand_front_intrinsics_02_<suffix>.txt`（左侧相机）
+   - `camera_rhand_front_intrinsics_02_<suffix>.txt`（右侧相机）
+
+脚本会自动更新以下配置文件：
+- `src/monte_controller_node/config/config.yaml`
+- `src/track_on_ros2/config/config.yaml`
+
+#### 3.2.2.2 使用方法
+
+**基本用法：**
+
+```bash
+./generate_camera_params.sh -r <robot_name>
+```
+
+**参数说明：**
+
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `-r, --robot-name` | 机器人名称（必填） | `mt029`, `mt0210` |
+| `--robot-ip` | 机器人 IP 和端口（可选） | `192.168.11.3:50051` |
+
+**使用示例：**
+
+```bash
+# 示例 1：使用 mt029 机器人
+./generate_camera_params.sh -r mt029
+
+# 示例 2：指定机器人 IP
+./generate_camera_params.sh -r mt0210 --robot-ip 192.168.11.3:50051
+```
+
+运行后会提示：
+1. 自动获取手腕到相机的外参（TF 变换）
+2. 询问是否获取相机内参：
+   - 输入目标机器人的 `domain_id` 获取相机内参
+   - 直接回车跳过
+
+**注意事项：**
+
+- 机器人名称格式：`mt02<编号>`，如 `mt029` → 后缀 `9`，`mt0210` → 后缀 `10`
+- 确保机器人已开机并连接网络
+- 获取内参时需要确保机器人端正在发布 camera_info 话题
 
 ```bash
 ./tracking_with_arm_control.sh
@@ -309,8 +350,9 @@ cd src/tracking_web_ui
 
 | 脚本名                                 | 功能                                              |
 | ----------------------------------- | ----------------------------------------------- |
-| `tracking_with_arm_control.sh`     | 启动完整的跟踪与机械臂控制系统（视频流 + Tracking + 3D-TF转换 + 机械臂控制） |
-| `start_robot_video_stream.sh`      | 单独启动机器人视频流（robot_video_client）                    |
+| `generate_camera_params.sh`         | 生成相机内外参（外参 TF 变换 + 内参从机器人获取）                |
+| `tracking_with_arm_control.sh`      | 启动完整的跟踪与机械臂控制系统（视频流 + Tracking + 3D-TF转换 + 机械臂控制） |
+| `start_robot_video_stream.sh`       | 单独启动机器人视频流（robot_video_client）                    |
 
 ---
 

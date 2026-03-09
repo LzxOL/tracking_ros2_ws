@@ -39,9 +39,9 @@ def generate_launch_description():
     config = load_config()
 
     # 从配置文件获取默认值（统一使用 robot.component_type：1=左臂/左相机，2=右臂/右相机）
-    robot_component_type_default = config.get('robot', {}).get('component_type', 1)
+    robot_component_type_default = str(config.get('robot', {}).get('component_type', 1))
     camera_selection = robot_component_type_default  # 1: 左相机, 2: 右相机
-    if camera_selection == 1:
+    if camera_selection == "1":
         camera_config = config.get('left_camera', {})
     else:
         camera_config = config.get('right_camera', {})

@@ -2,7 +2,8 @@
 # 在 ROS2 环境下启动 Web 上位机
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WS_DIR="$(cd "$SCRIPT_DIR/../tracking_with_cameara_ws" && pwd)"
+# tracking_with_cameara_ws 在项目父目录
+WS_DIR="/home/root1/Corenetic/code/project/tracking_with_cameara_ws"
 
 # 允许本机完整 DDS 发现（避免仅 localhost 导致收不到图像）
 : "${ROS_LOCALHOST_ONLY:=0}"

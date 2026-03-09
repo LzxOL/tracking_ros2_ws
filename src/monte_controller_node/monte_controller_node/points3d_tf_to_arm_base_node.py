@@ -94,7 +94,7 @@ class Points3DTFToArmBaseNode(Node):
             self.config = {}
 
         # 参数：RobotLib 连接
-        default_robot_ip = self.config.get('robot', {}).get('ip', '192.168.22.112:50051')
+        default_robot_ip = self.config.get('robot', {}).get('ip', '192.168.11.3:50051')
         self.declare_parameter('robot_ip', default_robot_ip)
         try:
             from ament_index_python.packages import get_package_share_directory  # type: ignore
@@ -506,6 +506,14 @@ class Points3DTFToArmBaseNode(Node):
             self.get_logger().warn(f'收到的点云 frame_id={msg_frame}，但预期为 {self.source_frame}，丢弃本帧')
             return
 
+        # Step 0: 提取光学坐标系下的点
+        pts_optical = [np.array([p.x, p.y, p.z], dtype=float) for p in msg.points]
+        msg_frame = msg.header.frame_id
+
+        if (not msg_frame) or (msg_frame != self.source_frame):
+            self.get_logger().warn(f'收到的点云 frame_id={msg_frame}，但预期为 {self.source_frame}，丢弃本帧')
+            return
+
         # 提取 id channel
         ids = None
         try:
@@ -607,7 +615,7 @@ class Points3DTFToArmBaseNode(Node):
                         continue
             if target is None and len(pts_base) > 0:
                 target = pts_base[0]
-
+                
             # >>> 新增：安全过滤 <<<
             valid_target = None
             if target is not None:
@@ -706,6 +714,9 @@ class Points3DTFToArmBaseNode(Node):
                     msg = Bool()
                     msg.data = True
                     self.coarse_done_pub.publish(msg)
+                    # 粗定位完成后，禁用机械臂控制（切换到关键点跟踪模式）
+                    self.enable_coarse_move = False
+                    self.get_logger().info('粗定位完成，已禁用机械臂控制，开始关键点跟踪')
                     # clear flag so we don't repeatedly publish
                     self._last_msg_was_coarse = False
             except Exception:
